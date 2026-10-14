@@ -7,6 +7,7 @@ import {
   familyReading,
   fullReading,
   nameReading,
+  typeReading,
   weekReading,
   yearReading,
 } from '@/readings/builders';
@@ -93,4 +94,21 @@ test('readings carry a Mind & Scripture section and pass the verse to the AI', (
   expect(docs[0].sections.find((s) => s.heading.startsWith('Mind & Scripture'))!.heading).toContain('Romans 4:17');
   // Compatibility always reads Matthew 18:19, on agreement between two.
   expect(docs[6].sections.find((s) => s.heading.startsWith('Mind & Scripture'))!.heading).toContain('Matthew 18:19');
+});
+
+test('a quick or uncertain type result says so, and tells the AI', () => {
+  const base = { scores: { Te: 0, Ti: 0, Fe: 0, Fi: 0, Se: 0, Si: 0, Ne: 0, Ni: 100 }, dominant: 'Ni', auxiliary: 'Te', inferior: 'Se', code: 'INTJ', takenAt: '2026-10-14' } as const;
+  const legacy = typeReading({ ...base });
+  wellFormed(legacy);
+  expect(legacy.facts.depth).toMatch(/deep dive/);
+  expect(legacy.sections.map((s) => s.heading)).not.toContain('A quick read');
+
+  const quick = typeReading({ ...base, depth: 'quick', confidence: 'medium' });
+  expect(quick.sections.at(-1)!.heading).toBe('A quick read');
+  expect(quick.sections.at(-1)!.body).toMatch(/deep dive/);
+  expect(quick.facts.depth).toMatch(/quick read/);
+
+  const unsure = typeReading({ ...base, depth: 'full', confidence: 'low' });
+  expect(unsure.sections.map((s) => s.heading)).toContain('How sure is this?');
+  expect(unsure.facts.confidence).toBe('low');
 });

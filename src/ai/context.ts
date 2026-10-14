@@ -21,6 +21,13 @@ export type UserSnapshot = {
   aims?: string[];
 };
 
+/** Tells the guide to hold a quick or uncertain type result loosely. */
+function typeCaveat(t: TypesResult): string {
+  if (t.confidence === 'low') return '; tentative: many answers fit neither choice or the top functions were level';
+  if (t.depth === 'quick') return '; from the 10-question quick read, so a first sketch';
+  return '';
+}
+
 /** Compact, labelled facts about the person for the system prompt. */
 export function describeUser(s: UserSnapshot): string {
   const p = s.profile;
@@ -41,7 +48,7 @@ export function describeUser(s: UserSnapshot): string {
   lines.push(`Current cycles: Personal Year ${personalYear(p.birthDate, y).display}, Personal Month ${personalMonth(p.birthDate, y, m).display}`);
   if (s.types) {
     lines.push(
-      `Psychological type: dominant ${FUNCTION_MEANINGS[s.types.dominant].name}, auxiliary ${FUNCTION_MEANINGS[s.types.auxiliary].name}, inferior ${FUNCTION_MEANINGS[s.types.inferior].name} (${s.types.code})`,
+      `Psychological type: dominant ${FUNCTION_MEANINGS[s.types.dominant].name}, auxiliary ${FUNCTION_MEANINGS[s.types.auxiliary].name}, inferior ${FUNCTION_MEANINGS[s.types.inferior].name} (${s.types.code})${typeCaveat(s.types)}`,
     );
   }
   if (s.archetypes) {

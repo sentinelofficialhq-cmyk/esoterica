@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -42,6 +42,9 @@ export default function ReadingScreen() {
   return (
     <Screen header={<ScreenHeader title={doc.subtitle ?? 'Reading'} />}>
       <ReadingView doc={doc} />
+      {doc.type === 'type' && String(doc.facts.depth ?? '').startsWith('quick') ? (
+        <Button label="Take the 32-question deep dive" onPress={() => router.push({ pathname: '/quiz-types', params: { depth: 'full' } })} />
+      ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
         <Txt variant="label">Read with</Txt>
         <Chip label="Jung" selected={guide === 'jung'} onPress={() => setGuide('jung')} />

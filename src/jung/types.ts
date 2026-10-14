@@ -1,6 +1,19 @@
 import type { Fn } from '@/content/functions';
 
-export type TypesResult = { scores: Record<Fn, number>; dominant: Fn; auxiliary: Fn; inferior: Fn; code: string; takenAt: string };
+/** The 10-question quick read or the full 32. */
+export type TypesDepth = 'quick' | 'full';
+export type Confidence = 'low' | 'medium' | 'high';
+export type TypesResult = {
+  scores: Record<Fn, number>;
+  dominant: Fn;
+  auxiliary: Fn;
+  inferior: Fn;
+  code: string;
+  takenAt: string;
+  /** Missing on results saved before the quick read existed, which were all full-length. */
+  depth?: TypesDepth;
+  confidence?: Confidence;
+};
 export type ArchetypeResult = { top: string[]; counts: Record<string, number>; shadowForm: string; takenAt: string };
 export type AlignmentResult = { percent: number; tier: string; takenAt: string };
 

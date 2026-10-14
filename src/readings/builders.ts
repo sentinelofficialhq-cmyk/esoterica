@@ -401,16 +401,38 @@ export function typeReading(r: TypesResult): ReadingDoc {
   const dom = FUNCTION_MEANINGS[r.dominant];
   const aux = FUNCTION_MEANINGS[r.auxiliary];
   const inf = FUNCTION_MEANINGS[r.inferior];
+  const depth = r.depth ?? 'full';
+  const sections: ReadingSection[] = [
+    { heading: `Dominant · ${dom.name}`, body: `${dom.essence} ${dom.whenDominant}` },
+    { heading: `Auxiliary · ${aux.name}`, body: `${aux.essence} It supports and balances your dominant function.` },
+    { heading: `Inferior · ${inf.name}`, body: `${inf.whenInferior} ${inf.growthEdge}` },
+  ];
+  if (r.confidence === 'low') {
+    sections.push({
+      heading: 'How sure is this?',
+      body: 'Many answers fit neither choice, or two functions came out level, so treat this result as tentative. That is useful in itself: Jung saw the types as tendencies, not boxes.',
+    });
+  }
+  if (depth === 'quick') {
+    sections.push({
+      heading: 'A quick read',
+      body: 'This came from 10 questions, so it is a first sketch. Take the deep dive for a more precise read, especially of your inferior function.',
+    });
+  }
   return {
     type: 'type',
     title: dom.name,
     subtitle: `Psychological type · ${r.code}`,
-    sections: [
-      { heading: `Dominant · ${dom.name}`, body: `${dom.essence} ${dom.whenDominant}` },
-      { heading: `Auxiliary · ${aux.name}`, body: `${aux.essence} It supports and balances your dominant function.` },
-      { heading: `Inferior · ${inf.name}`, body: `${inf.whenInferior} ${inf.growthEdge}` },
-    ],
-    facts: { dominant: dom.name, auxiliary: aux.name, inferior: inf.name, code: r.code, scores: Object.entries(r.scores).map(([k, v]) => `${k} ${v}`) },
+    sections,
+    facts: {
+      dominant: dom.name,
+      auxiliary: aux.name,
+      inferior: inf.name,
+      code: r.code,
+      scores: Object.entries(r.scores).map(([k, v]) => `${k} ${v}`),
+      depth: depth === 'quick' ? 'quick read (10 questions)' : 'deep dive (32 questions)',
+      ...(r.confidence ? { confidence: r.confidence } : {}),
+    },
   };
 }
 
