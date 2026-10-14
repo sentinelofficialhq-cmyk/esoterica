@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
+import { useAnalyticsQueue } from '@/analytics/track';
 import { useChatStore } from '@/store/chatStore';
+import { useExperimentStore } from '@/store/experimentStore';
 import { useImaginationStore } from '@/store/imaginationStore';
 import { useJournalStore } from '@/store/journalStore';
 import { useMemoryStore } from '@/store/memoryStore';
@@ -22,6 +24,8 @@ export const PERSISTED_STORES: Persisted[] = [
   useSettingsStore,
   useChatStore,
   useImaginationStore,
+  useExperimentStore,
+  useAnalyticsQueue,
 ];
 
 const allHydrated = () => PERSISTED_STORES.every((s) => s.persist.hasHydrated());

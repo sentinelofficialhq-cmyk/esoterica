@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Theme } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
-import { radii, space } from '@/ui/theme';
+import { space } from '@/ui/theme';
 
 export type BarDatum = { key: string; label: string; value: number; highlight?: boolean };
 
@@ -12,6 +12,7 @@ type ColumnProps = { data: BarDatum[]; max?: number; height?: number; onPressBar
 /**
  * Columns for a short series (the forecast). One hue: the highlighted column wears the full accent,
  * the rest a lighter step of it. Values sit above the columns in text colors, never the data color.
+ * `shape.chart` picks solid columns or hairlines (10px wide, larger figures, tracked axis labels).
  */
 export function Columns({ data, max = 100, height = 120, onPressBar, unit = '', showValues = true }: ColumnProps) {
   const t = useTheme();
@@ -41,11 +42,8 @@ export function Columns({ data, max = 100, height = 120, onPressBar, unit = '', 
               <View
                 style={[
                   s.column,
-                  {
-                    height: h,
-                    backgroundColor: strong ? t.colors.accent : t.colors.track,
-                    shadowColor: strong ? t.colors.accent : 'transparent',
-                  },
+                  { height: h, backgroundColor: strong ? t.colors.accent : t.colors.track },
+                  t.shadows.dataGlow && [s.glow, { shadowColor: strong ? t.colors.accent : 'transparent' }],
                 ]}
               />
             </Pressable>
@@ -78,30 +76,31 @@ export function MeterBar({ label, value, max = 100 }: { label: string; value: nu
   );
 }
 
-const makeStyles = (t: Theme) =>
-  StyleSheet.create({
+const makeStyles = (t: Theme) => {
+  const hairline = t.shape.chart === 'hairline';
+  const glow = t.shadows.dataGlow;
+  return StyleSheet.create({
     plot: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: space(2) },
     slot: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: space(1.5) },
     column: {
-      width: t.id === 'gilded' ? 10 : '62%',
+      width: hairline ? 10 : '62%',
       maxWidth: 34,
       borderTopLeftRadius: 4,
       borderTopRightRadius: 4,
       borderBottomLeftRadius: 1,
       borderBottomRightRadius: 1,
-      shadowOpacity: 0.55,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 0 },
     },
-    value: { fontFamily: t.fonts.displaySemi, fontSize: t.id === 'gilded' ? 18 : 14, color: t.colors.textDim },
+    glow: glow ? { shadowOpacity: glow.opacity, shadowRadius: glow.radius, shadowOffset: { width: 0, height: 0 } } : {},
+    value: { ...t.fonts.figure, fontSize: hairline ? 18 : 14, color: t.colors.textDim },
     valueStrong: { color: t.colors.text },
     hidden: { opacity: 0 },
     labels: { flexDirection: 'row', justifyContent: 'space-between', gap: space(2), marginTop: space(2) },
-    axisLabel: { flex: 1, textAlign: 'center', fontFamily: t.fonts.bodyBold, fontSize: 11, letterSpacing: t.id === 'gilded' ? 1.2 : 0, color: t.colors.textDim },
+    axisLabel: { flex: 1, textAlign: 'center', ...t.fonts.bodyBold, fontSize: 11, letterSpacing: hairline ? 1.2 : 0, color: t.colors.textDim },
     axisLabelStrong: { color: t.colors.text },
     meterRow: { flexDirection: 'row', alignItems: 'center', gap: space(3) },
-    meterLabel: { width: 92, fontFamily: t.fonts.bodyMedium, fontSize: 13, color: t.colors.textDim },
-    meterTrack: { flex: 1, height: 10, borderRadius: radii.pill, backgroundColor: t.colors.track, overflow: 'hidden' },
-    meterFill: { height: 10, borderRadius: radii.pill, backgroundColor: t.colors.accent },
-    meterValue: { width: 32, textAlign: 'right', fontFamily: t.fonts.bodySemi, fontSize: 13, color: t.colors.text },
+    meterLabel: { width: 92, ...t.fonts.bodyMedium, fontSize: 13, color: t.colors.textDim },
+    meterTrack: { flex: 1, height: t.shape.meter.height, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.track, overflow: 'hidden' },
+    meterFill: { height: t.shape.meter.height, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.accent },
+    meterValue: { width: 32, textAlign: 'right', ...t.fonts.figure, fontSize: 13, color: t.colors.text },
   });
+};

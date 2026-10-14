@@ -20,7 +20,7 @@ function sector(c: number, r0: number, r1: number, a0: number, a1: number) {
 /**
  * The individuation map: four quadrants, clockwise from the top (Persona, Shadow, Anima/Animus, Self).
  * Each fills outward from the center by its share of milestones done, in one hue over a faint track,
- * with a 2px surface gap between segments. Labels sit on dark pills so they stay readable over any fill.
+ * with a 2px surface gap between segments. Labels sit on scrim pills so they stay readable over any fill.
  * Below 160px the labels and center number are dropped (a progress ring).
  */
 export function Mandala({ stages, size = 220, surface: surfaceProp }: { stages: Stage[]; size?: number; surface?: string }) {
@@ -78,21 +78,23 @@ export function Mandala({ stages, size = 220, surface: surfaceProp }: { stages: 
   );
 }
 
-const makeStyles = (t: Theme) =>
-  StyleSheet.create({
+const makeStyles = (t: Theme) => {
+  const upper = t.shape.labelCase === 'upper';
+  return StyleSheet.create({
     center: { alignItems: 'center', justifyContent: 'center' },
-    percent: { fontFamily: t.fonts.bodySemi, color: t.colors.text },
+    percent: { ...t.fonts.figure, color: t.colors.text },
     labelBox: { position: 'absolute', width: LABEL_W, height: 20, alignItems: 'center', justifyContent: 'center' },
     label: {
-      fontFamily: t.fonts.bodyHeavy,
+      ...t.fonts.bodyHeavy,
       fontSize: 10,
-      letterSpacing: 1,
-      textTransform: 'uppercase',
+      letterSpacing: upper ? 1 : 0,
+      textTransform: upper ? 'uppercase' : 'none',
       color: t.colors.text,
-      backgroundColor: 'rgba(7,7,26,0.72)',
+      backgroundColor: t.colors.scrim,
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 999,
       overflow: 'hidden',
     },
   });
+};

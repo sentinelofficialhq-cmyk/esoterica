@@ -1,7 +1,8 @@
 import type { z } from 'zod';
 
 export type Effort = 'low' | 'medium' | 'high';
-export type ProviderId = 'anthropic' | 'openai' | 'gemini' | 'mock';
+/** 'esoterica' is Jung as hosted by Esoterica's server; the others use the person's own API key. */
+export type ProviderId = 'esoterica' | 'anthropic' | 'openai' | 'gemini' | 'mock';
 
 /** One chat turn. `content` is provider-native (Anthropic content blocks, or plain text); `text` is for display. */
 export type StoredMessage = {

@@ -59,6 +59,7 @@ function inline(text: string, baseKey: string, styles: ReturnType<typeof makeSty
   });
 }
 
+/** `serif` sets Jung's and Neville's voice (`typography.prose`); it keeps its old name. */
 export function Markdown({ children, serif = false, color: colorProp }: { children: string; serif?: boolean; color?: string }) {
   const styles = useStyles(makeStyles);
   const { colors } = useTheme();
@@ -97,12 +98,12 @@ export function Markdown({ children, serif = false, color: colorProp }: { childr
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     wrap: { gap: space(3) },
-    body: { fontFamily: t.fonts.body, fontSize: 16, lineHeight: 24 },
-    serif: { fontFamily: t.fonts.display, fontSize: 17, lineHeight: 26 },
-    h1: { fontFamily: t.fonts.displaySemi, fontSize: 22, lineHeight: 28 },
-    h2: { fontFamily: t.fonts.displaySemi, fontSize: 18, lineHeight: 24, marginTop: space(1) },
-    bold: { fontFamily: t.fonts.bodySemi },
-    italic: { fontFamily: t.fonts.displayItalic },
+    body: { ...t.fonts.body, fontSize: 16, lineHeight: 24 },
+    serif: t.typography.prose,
+    h1: { ...t.fonts.displaySemi, fontSize: 22, lineHeight: 28 },
+    h2: { ...t.fonts.displaySemi, fontSize: 18, lineHeight: 24, marginTop: space(1) },
+    bold: { ...t.fonts.strong },
+    italic: { ...t.fonts.emphasis },
     li: { flexDirection: 'row', gap: space(2) },
     bullet: { color: t.colors.accent },
     liText: { flex: 1 },

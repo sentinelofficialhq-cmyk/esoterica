@@ -11,7 +11,7 @@ import { usePeopleStore } from '@/store/peopleStore';
 import { useProfile } from '@/store/profileStore';
 import { LinkRow } from '@/ui/LinkRow';
 import { MatchRow } from '@/ui/MatchRow';
-import { Screen, TAB_BAR_SPACE } from '@/ui/Screen';
+import { Screen, useTabBarSpace } from '@/ui/Screen';
 import { SectionLabel } from '@/ui/SectionLabel';
 import { TextField } from '@/ui/TextField';
 import { Txt } from '@/ui/Txt';
@@ -42,6 +42,7 @@ export default function SearchTab() {
   const custom = usePeopleStore((s) => s.customEntities);
   const [q, setQ] = useState('');
   const entities = useMemo(() => allEntities(custom), [custom]);
+  const tabSpace = useTabBarSpace();
 
   if (!me) return <Redirect href="/onboarding" />;
 
@@ -53,7 +54,7 @@ export default function SearchTab() {
   const nothing = needle && personHits.length + entityHits.length + toolHits.length + articleHits.length === 0;
 
   return (
-    <Screen bottomInset={TAB_BAR_SPACE}>
+    <Screen bottomInset={tabSpace}>
       <Txt variant="title">Search</Txt>
       <TextField value={q} onChangeText={setQ} placeholder="Apple, Tokyo, your sister, dreams…" autoCorrect={false} accessibilityLabel="Search" />
       {!needle ? <Txt variant="small">Find people, places, brands and celebrities to compare with, plus every tool and Learn article.</Txt> : null}

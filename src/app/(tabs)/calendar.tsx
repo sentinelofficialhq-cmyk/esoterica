@@ -14,7 +14,7 @@ import { Chip } from '@/ui/Chip';
 import { IconButton } from '@/ui/IconButton';
 import { BackIcon, ChevronRightIcon, SparkleIcon } from '@/ui/icons';
 import { Numeral } from '@/ui/Numeral';
-import { Screen, TAB_BAR_SPACE } from '@/ui/Screen';
+import { Screen, useTabBarSpace } from '@/ui/Screen';
 import type { Theme } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
 import { Txt } from '@/ui/Txt';
@@ -27,6 +27,7 @@ export default function CalendarTab() {
   const today = todayLocal();
   const [selected, setSelected] = useState(today);
   const [view, setView] = useState<'week' | 'month'>('week');
+  const tabSpace = useTabBarSpace();
   if (!profile) return <Redirect href="/onboarding" />;
 
   const { y, m, d } = parseYMD(selected);
@@ -39,14 +40,15 @@ export default function CalendarTab() {
   const guidance = DAY_GUIDANCE[e.personalDay];
   const step = (n: number) => setSelected(addDays(selected, n));
   const dayLabel = (date: string) => (date === today ? 'Today' : weekday(date));
+  const cal = t.shape.calendar;
 
   return (
-    <Screen bottomInset={TAB_BAR_SPACE}>
+    <Screen bottomInset={tabSpace}>
       <View style={s.header}>
         <View style={s.flex}>
-          {t.id === 'gilded' ? <Txt variant="label">{`${monthLong(m)} ${y}`}</Txt> : null}
+          {cal.title === 'weekdayOrdinal' ? <Txt variant="label">{`${monthLong(m)} ${y}`}</Txt> : null}
           <Txt variant="title">
-            {t.id === 'gilded' ? (
+            {cal.title === 'weekdayOrdinal' ? (
               <>
                 {`${weekdayLong(selected)}, `}
                 <Txt variant="title" italic color={t.colors.accentBright}>{`the ${d}${d === 1 || d === 21 || d === 31 ? 'st' : d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : 'th'}`}</Txt>
@@ -82,9 +84,9 @@ export default function CalendarTab() {
                 accessibilityLabel={`${weekdayLong(day.date)} ${parseYMD(day.date).d}: energy ${day.score}`}
                 onPress={() => setSelected(day.date)}
                 style={[s.dayCell, on ? s.dayOn : null]}>
-                <Text style={[s.dayName, on && { color: t.colors.onAccent }]}>{t.id === 'gilded' ? weekday(day.date).charAt(0) : weekday(day.date).toUpperCase()}</Text>
+                <Text style={[s.dayName, on && { color: t.colors.onAccent }]}>{cal.weekday === 'initial' ? weekday(day.date).charAt(0) : weekday(day.date)}</Text>
                 <Text style={[s.dayNum, on && { color: t.colors.onAccent }]}>{parseYMD(day.date).d}</Text>
-                {t.id === 'nebula' ? (
+                {cal.marker === 'score' ? (
                   <Text style={[s.dayScore, on && { color: t.colors.onAccent }]}>{day.score}</Text>
                 ) : (
                   <View style={[s.dayDot, { backgroundColor: on ? t.colors.onAccent : t.colors.accent, opacity: on ? 1 : 0.25 + (day.score / 100) * 0.75 }]} />
@@ -99,7 +101,7 @@ export default function CalendarTab() {
 
       <Card tone="featured" onPress={() => router.push({ pathname: '/reading', params: { type: 'daily', date: selected } })} style={s.dailyButton} accessibilityLabel="Get daily reading">
         <SparkleIcon size={20} color={t.colors.accentBright} />
-        <Text style={s.dailyText}>{t.id === 'gilded' ? 'Read the day in full' : 'Get Daily Reading'}</Text>
+        <Text style={s.dailyText}>{t.shape.voice === 'formal' ? 'Read the day in full' : 'Get Daily Reading'}</Text>
       </Card>
 
       <Card>
@@ -179,6 +181,7 @@ function MonthGrid({ selected, today, onPick }: { selected: string; today: strin
   const first = `${y}-${String(m).padStart(2, '0')}-01`;
   const days = forecast(profile, first, daysInMonth(y, m));
   const lead = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
+  const { heat } = t.shape.calendar;
   return (
     <Card>
       <View style={s.grid}>
@@ -197,7 +200,7 @@ function MonthGrid({ selected, today, onPick }: { selected: string; today: strin
               <View
                 style={[
                   s.gridDay,
-                  { backgroundColor: t.colors.accent, opacity: 0.18 + (day.score / 100) * 0.7 },
+                  { backgroundColor: t.colors.accent, opacity: heat.min + (day.score / 100) * heat.span },
                   on && { opacity: 1 },
                   day.date === today && { borderWidth: 1.5, borderColor: t.colors.text },
                 ]}
@@ -214,14 +217,14 @@ function MonthGrid({ selected, today, onPick }: { selected: string; today: strin
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     flex: { flex: 1 },
-    bold: { fontFamily: t.fonts.bodyBold },
+    bold: { ...t.fonts.bodyBold },
     header: { flexDirection: 'row', alignItems: 'center', gap: space(2) },
     toggle: { flexDirection: 'row', gap: space(2) },
     week: { flexDirection: 'row', gap: space(1.5) },
     dayCell: {
       flex: 1,
       height: 78,
-      borderRadius: t.id === 'gilded' ? 39 : 20,
+      borderRadius: t.shape.calendar.cellRadius,
       borderWidth: 1,
       borderColor: t.colors.border,
       backgroundColor: t.colors.card,
@@ -229,28 +232,30 @@ const makeStyles = (t: Theme) =>
       justifyContent: 'center',
       gap: 4,
     },
-    dayOn: { backgroundColor: t.colors.accent, borderColor: t.colors.accent, shadowColor: t.colors.accent, shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 6 } },
-    dayName: { fontFamily: t.fonts.bodyBold, fontSize: 10.5, letterSpacing: 0.6, color: t.colors.textDim },
-    dayNum: { fontFamily: t.fonts.displayBold, fontSize: t.id === 'gilded' ? 22 : 18, color: t.colors.text },
-    dayScore: { fontFamily: t.fonts.bodyBold, fontSize: 10.5, color: t.colors.accentBright },
+    dayOn: {
+      backgroundColor: t.colors.accent,
+      borderColor: t.colors.accent,
+      ...(t.shadows.selected
+        ? { shadowColor: t.colors.accent, shadowOpacity: t.shadows.selected.opacity, shadowRadius: t.shadows.selected.radius, shadowOffset: { width: 0, height: t.shadows.selected.y } }
+        : null),
+    },
+    dayName: { ...t.ui.weekday, color: t.colors.textDim },
+    dayNum: { ...t.ui.dayNumber, color: t.colors.text },
+    dayScore: { ...t.fonts.bodyBold, fontSize: 10.5, color: t.colors.accentBright },
     dayDot: { width: 5, height: 5, borderRadius: 3 },
     dailyButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space(2.5), paddingVertical: space(3.5) },
-    dailyText: {
-      fontFamily: t.id === 'gilded' ? t.fonts.displayItalic : t.fonts.displaySemi,
-      fontSize: t.id === 'gilded' ? 20 : 17,
-      color: t.colors.accentBright,
-    },
+    dailyText: { ...t.ui.action, color: t.colors.accentBright },
     cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space(2) },
     energies: { flexDirection: 'row', gap: space(3) },
     energy: { flex: 1, gap: 2 },
-    keyword: { fontFamily: t.fonts.bodySemi, fontSize: 14.5, lineHeight: 21, textTransform: 'capitalize' },
+    keyword: { ...t.fonts.bodySemi, fontSize: 14.5, lineHeight: 21, textTransform: 'capitalize' },
     factor: { flexDirection: 'row', alignItems: 'center', gap: space(3) },
-    delta: { width: 30, fontFamily: t.fonts.bodyBold, fontSize: 13 },
+    delta: { width: 30, ...t.fonts.bodyBold, fontSize: 13 },
     event: { flexDirection: 'row', gap: space(3), paddingVertical: space(1.5) },
-    eventDate: { width: 52, fontFamily: t.fonts.bodyBold },
+    eventDate: { width: 52, ...t.fonts.bodyBold },
     grid: { flexDirection: 'row', flexWrap: 'wrap' },
-    gridHead: { width: `${100 / 7}%`, textAlign: 'center', fontFamily: t.fonts.bodyBold, fontSize: 11, color: t.colors.textDim, paddingBottom: space(2) },
+    gridHead: { width: `${100 / 7}%`, textAlign: 'center', ...t.fonts.bodyBold, fontSize: 11, color: t.colors.textDim, paddingBottom: space(2) },
     gridCell: { width: `${100 / 7}%`, aspectRatio: 1, padding: 2, alignItems: 'center', justifyContent: 'center' },
     gridDay: { position: 'absolute', top: 2, left: 2, right: 2, bottom: 2, borderRadius: 10 },
-    gridNum: { fontFamily: t.fonts.bodySemi, fontSize: 13, color: t.colors.text },
+    gridNum: { ...t.fonts.bodySemi, fontSize: 13, color: t.colors.text },
   });

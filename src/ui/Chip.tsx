@@ -12,7 +12,7 @@ export function Chip({ label, selected, onPress, tone = 'default' }: Props) {
   const s = useStyles(makeStyles);
   const c = t.colors;
   const tint: Record<Tone, [string, string]> = {
-    default: [c.textDim, c.cardHi],
+    default: [c.chipInk, c.chipBg],
     accent: [c.accentBright, c.accentSoft],
     ember: [c.accentBright, c.accentSoft],
     teal: [c.teal, c.tealSoft],
@@ -21,13 +21,15 @@ export function Chip({ label, selected, onPress, tone = 'default' }: Props) {
     danger: [c.danger, c.dangerSoft],
   };
   const [fg, bg] = selected ? [c.accentBright, c.accentSoft] : tint[tone];
+  // Tinted tones are filled; the default chip is filled or outlined per look.
+  const border = selected ? c.accentBorder : tone === 'default' ? c.chipBorder : 'transparent';
   return (
     <Pressable
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityState={{ selected }}
       disabled={!onPress}
       onPress={onPress}
-      style={({ pressed }) => [s.chip, { backgroundColor: bg, borderColor: selected ? c.accentBorder : 'transparent' }, pressed && s.pressed]}>
+      style={({ pressed }) => [s.chip, { backgroundColor: bg, borderColor: border }, pressed && s.pressed]}>
       <Text style={[s.text, { color: fg }]}>{label}</Text>
     </Pressable>
   );
@@ -36,6 +38,6 @@ export function Chip({ label, selected, onPress, tone = 'default' }: Props) {
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     chip: { borderWidth: 1, borderRadius: radii.pill, paddingHorizontal: space(3), paddingVertical: space(1.5) },
-    text: { fontFamily: t.fonts.bodyBold, fontSize: 12.5 },
+    text: t.ui.chip,
     pressed: { opacity: 0.75 },
   });

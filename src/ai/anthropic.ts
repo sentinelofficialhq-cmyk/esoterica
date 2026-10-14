@@ -3,7 +3,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { Platform } from 'react-native';
 
 import { MODELS } from '@/ai/models';
-import type { AIProvider, Effort, StoredMessage, Usage } from '@/ai/types';
+import type { AIProvider, Effort, ProviderId, StoredMessage, Usage } from '@/ai/types';
 
 type StreamParams = Parameters<Anthropic['beta']['messages']['stream']>[0];
 type MessageParam = StreamParams['messages'][number];
@@ -42,11 +42,27 @@ export const stripThinking = (messages: StoredMessage[]): StoredMessage[] =>
       : m,
   );
 
-export function createAnthropicProvider(apiKey: string, model: string): AIProvider {
+/** For a Messages endpoint other than Anthropic's: Esoterica's own server, which signs in with the person's session. */
+export type AnthropicHost = {
+  id: ProviderId;
+  baseURL: string;
+  authToken: string;
+  headers?: Record<string, string>;
+  /** Ask for server-side refusal fallback; the host decides whether the model it picks supports it. */
+  serverFallback: boolean;
+};
+
+export function createAnthropicProvider(apiKey: string | null, model: string, host?: AnthropicHost): AIProvider {
   // Browsers are a supported SDK runtime with this flag (Esoterica's iPhone build is the web app).
   // On native (Expo Go) the global fetch is Expo's streaming fetch.
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-  const fallback = MODELS[model]?.serverFallback ?? false;
+  const client = new Anthropic({
+    apiKey,
+    authToken: host?.authToken ?? null,
+    baseURL: host?.baseURL,
+    defaultHeaders: host?.headers,
+    dangerouslyAllowBrowser: true,
+  });
+  const fallback = host ? host.serverFallback : (MODELS[model]?.serverFallback ?? false);
 
   const params = (system: string, messages: StoredMessage[], effort: Effort, maxTokens = 64000): StreamParams => ({
     model,
@@ -75,7 +91,7 @@ export function createAnthropicProvider(apiKey: string, model: string): AIProvid
   }
 
   return {
-    id: 'anthropic',
+    id: host?.id ?? 'anthropic',
     model,
     async streamReply({ system, messages, effort, signal, onText }) {
       let final;

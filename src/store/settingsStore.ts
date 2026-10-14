@@ -17,6 +17,8 @@ type SettingsFields = {
   geminiModel: string;
   chatDepth: ChatDepth;
   memoryEnabled: boolean;
+  /** "Help improve Esoterica": anonymous usage events and test groups. On by default; off stops tracking. */
+  shareUsage: boolean;
   lastBackupAt: string | null;
   /** The app's look: Ember Glass (default), Gilded Night or Nebula. */
   theme: ThemeId;
@@ -38,6 +40,7 @@ export const useSettingsStore = create<SettingsState>()(
       geminiModel: DEFAULT_GEMINI_MODEL,
       chatDepth: 'quick',
       memoryEnabled: true,
+      shareUsage: true,
       lastBackupAt: null,
       theme: 'ember',
       usage: { month: '', byModel: {} },

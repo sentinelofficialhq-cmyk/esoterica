@@ -13,7 +13,8 @@ type Props = { size?: number; onPress?: () => void; label?: string };
 /** The breathing orb with a slow ring of numbers and zodiac glyphs. Tap to ask Jung. */
 export function Orb({ size = 220, onPress, label = 'Ask Jung' }: Props) {
   const styles = useStyles(makeStyles);
-  const { colors } = useTheme();
+  const { colors, gradients, shape } = useTheme();
+  const halo = shape.orbHalo;
   const breath = useSharedValue(0);
   const spin = useSharedValue(0);
 
@@ -54,18 +55,20 @@ export function Orb({ size = 220, onPress, label = 'Ask Jung' }: Props) {
         <Animated.View style={orbStyle}>
           <Svg width={core * 1.6} height={core * 1.6} viewBox="0 0 160 160">
             <Defs>
-              <RadialGradient id="halo" cx="50%" cy="50%" r="50%">
-                <Stop offset="0.45" stopColor={colors.accent} stopOpacity="0.35" />
-                <Stop offset="1" stopColor={colors.accent} stopOpacity="0" />
-              </RadialGradient>
+              {halo > 0 ? (
+                <RadialGradient id="halo" cx="50%" cy="50%" r="50%">
+                  <Stop offset="0.45" stopColor={colors.accent} stopOpacity={halo} />
+                  <Stop offset="1" stopColor={colors.accent} stopOpacity="0" />
+                </RadialGradient>
+              ) : null}
               <RadialGradient id="core" cx="38%" cy="32%" r="70%">
-                <Stop offset="0" stopColor="#FFE2B8" />
+                <Stop offset="0" stopColor={gradients.sphere.light} />
                 <Stop offset="0.35" stopColor={colors.accent} />
-                <Stop offset="0.8" stopColor="#7A3BFF" />
-                <Stop offset="1" stopColor="#2A1460" />
+                <Stop offset="0.8" stopColor={gradients.sphere.deep} />
+                <Stop offset="1" stopColor={gradients.sphere.core} />
               </RadialGradient>
             </Defs>
-            <Circle cx={80} cy={80} r={80} fill="url(#halo)" />
+            {halo > 0 ? <Circle cx={80} cy={80} r={80} fill="url(#halo)" /> : null}
             <Circle cx={80} cy={80} r={50} fill="url(#core)" />
           </Svg>
         </Animated.View>
@@ -77,5 +80,5 @@ export function Orb({ size = 220, onPress, label = 'Ask Jung' }: Props) {
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     center: { alignItems: 'center', justifyContent: 'center' },
-    glyph: { position: 'absolute', width: 28, textAlign: 'center', fontFamily: t.fonts.bodyHeavy, fontSize: 12, color: t.colors.textFaint },
+    glyph: { position: 'absolute', width: 28, textAlign: 'center', ...t.fonts.bodyHeavy, fontSize: 12, color: t.colors.textFaint },
   });

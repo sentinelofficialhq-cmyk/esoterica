@@ -9,7 +9,7 @@ import { Txt } from '@/ui/Txt';
 export function CrisisBanner() {
   const { colors } = useTheme();
   return (
-    <Card style={{ backgroundColor: colors.dangerSoft, borderColor: 'rgba(255,92,122,0.45)' }}>
+    <Card style={{ backgroundColor: colors.dangerSoft, borderColor: colors.dangerBorder }}>
       <Txt variant="heading">You deserve support right now</Txt>
       <Txt variant="small" color={colors.text}>
         Jung is an AI and can’t keep you safe. If you are thinking about harming yourself, or someone is hurting you, please reach a person now:

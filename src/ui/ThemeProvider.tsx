@@ -1,8 +1,7 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { useSettingsStore } from '@/store/settingsStore';
-import { useThemeFonts } from '@/ui/themeFonts';
-import { EMBER, THEMES, type Theme, type ThemeId } from '@/ui/themes';
+import { EMBER, THEMES, type Theme } from '@/ui/themes';
 
 const ThemeContext = createContext<Theme>(EMBER);
 
@@ -19,18 +18,10 @@ export function useStyles<T>(make: (t: Theme) => T): T {
 }
 
 /**
- * Provides the chosen look once its fonts are ready; until then the previous look stays on screen,
- * so switching never flashes system fonts.
+ * Provides the chosen look. Every look draws in the system font, so there is nothing to load and a
+ * switch applies at once. A stored id that no longer names a look falls back to Ember Glass.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const chosen = useSettingsStore((s) => s.theme);
-  const ready = useThemeFonts(chosen);
-  const [shown, setShown] = useState<ThemeId>(chosen);
-  if (ready && shown !== chosen) setShown(chosen);
-  return <ThemeContext.Provider value={THEMES[shown]}>{children}</ThemeContext.Provider>;
-}
-
-/** For the root layout's splash gate: are the chosen look's fonts ready? */
-export function useChosenThemeReady(): boolean {
-  return useThemeFonts(useSettingsStore((s) => s.theme));
+  return <ThemeContext.Provider value={THEMES[chosen] ?? EMBER}>{children}</ThemeContext.Provider>;
 }

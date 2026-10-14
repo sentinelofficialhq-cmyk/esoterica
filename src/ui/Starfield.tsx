@@ -21,7 +21,8 @@ export const STARS: Star[] = Array.from({ length: STAR_COUNT }, (_, i) => {
   };
 });
 
-export function Twinkle({ left, top, delay, color = '#FFFFFF' }: { left: `${number}%`; top: `${number}%`; delay: number; color?: string }) {
+/** A star that slowly brightens and fades, glowing in its own color. */
+export function Twinkle({ left, top, delay, color }: { left: `${number}%`; top: `${number}%`; delay: number; color: string }) {
   const opacity = useSharedValue(0.15);
   useEffect(() => {
     opacity.value = withDelay(delay, withRepeat(withTiming(0.9, { duration: 2400, easing: Easing.inOut(Easing.quad) }), -1, true));
@@ -45,8 +46,6 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
     shadowOpacity: 0.9,
     shadowRadius: 4,
   },

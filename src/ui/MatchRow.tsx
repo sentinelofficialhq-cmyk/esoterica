@@ -5,7 +5,7 @@ import { useStyles } from '@/ui/ThemeProvider';
 import type { CompatLabel } from '@/engines/compatibility';
 import { Card } from '@/ui/Card';
 import { Txt } from '@/ui/Txt';
-import { radii, space } from '@/ui/theme';
+import { space } from '@/ui/theme';
 
 type Props = { name: string; caption?: string; overall?: number; label?: CompatLabel; onPress?: () => void };
 
@@ -37,13 +37,17 @@ export function MatchRow({ name, caption, overall, label, onPress }: Props) {
   );
 }
 
-const makeStyles = (t: Theme) =>
-  StyleSheet.create({
+const makeStyles = (t: Theme) => {
+  const upper = t.shape.labelCase === 'upper';
+  // The look's meter, capped at 4px to sit under the figure.
+  const bar = Math.min(4, t.shape.meter.height);
+  return StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'center', gap: space(3), paddingVertical: space(3) },
     text: { flex: 1, gap: 2 },
     score: { width: 76, alignItems: 'flex-end', gap: 3 },
-    value: { fontFamily: t.fonts.bodySemi, fontSize: 15, color: t.colors.text },
-    track: { width: 76, height: 4, borderRadius: radii.pill, backgroundColor: t.colors.accentSoft, overflow: 'hidden' },
-    fill: { height: 4, borderRadius: radii.pill, backgroundColor: t.colors.accent },
-    label: { fontFamily: t.fonts.bodyHeavy, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: t.colors.textDim },
+    value: { ...t.fonts.figure, fontSize: 15, color: t.colors.text },
+    track: { width: 76, height: bar, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.meterTrack, overflow: 'hidden' },
+    fill: { height: bar, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.accent },
+    label: { ...t.fonts.bodyHeavy, fontSize: 9, letterSpacing: upper ? 1 : 0, textTransform: upper ? 'uppercase' : 'none', color: t.colors.textDim },
   });
+};

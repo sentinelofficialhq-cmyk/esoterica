@@ -3,15 +3,22 @@ import { ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Background } from '@/ui/Background';
-import { MAX_WIDTH, space } from '@/ui/theme';
+import { useTheme } from '@/ui/ThemeProvider';
+import { DOCKED_TAB_BAR_HEIGHT, MAX_WIDTH, space } from '@/ui/theme';
 
-/** Space reserved at the bottom of tab screens for the floating tab bar. */
-export const TAB_BAR_SPACE = 104;
+/**
+ * Space tab screens reserve at the bottom for the tab bar, on top of the safe-area inset Screen adds:
+ * 104 clears the floating pill; the docked bar sits on the inset, so its row plus a gap clears it.
+ */
+export function useTabBarSpace(): number {
+  const t = useTheme();
+  return t.shape.tabBar === 'floating' ? 104 : DOCKED_TAB_BAR_HEIGHT + space(4);
+}
 
 type Props = {
   children: ReactNode;
   scroll?: boolean;
-  /** Extra bottom space (tab screens pass TAB_BAR_SPACE). */
+  /** Extra bottom space (tab screens pass useTabBarSpace()). */
   bottomInset?: number;
   header?: ReactNode;
   footer?: ReactNode;

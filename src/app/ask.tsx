@@ -27,7 +27,7 @@ const CUSTOM: AnyModeId[] = ['custom', 'nevilleCustom'];
 
 export default function AskScreen() {
   const styles = useStyles(makeStyles);
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const params = useLocalSearchParams<{ guide?: string }>();
   const provider = useSettingsStore((s) => s.provider);
   const conversations = useChatStore((s) => s.conversations);
@@ -129,8 +129,9 @@ export default function AskScreen() {
           value={text}
           onChangeText={setText}
           placeholder={`Ask ${name} anything…`}
-          placeholderTextColor={colors.textFaint}
+          placeholderTextColor={colors.placeholder}
           selectionColor={colors.accent}
+          keyboardAppearance={scheme}
           multiline
           style={styles.input}
           accessibilityLabel={`Ask ${name} anything`}
@@ -197,7 +198,7 @@ const makeStyles = (t: Theme) =>
     },
     switchItem: { flex: 1, height: 40, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
     switchOn: { backgroundColor: t.colors.accentSoft, borderWidth: 1, borderColor: t.colors.accentBorder },
-    switchLabel: { fontFamily: t.fonts.bodyBold, fontSize: 14 },
+    switchLabel: { ...t.fonts.bodyBold, fontSize: 14 },
     orb: { alignItems: 'center' },
     chips: { gap: space(2), paddingRight: space(4) },
     inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space(2) },
@@ -205,12 +206,12 @@ const makeStyles = (t: Theme) =>
       flex: 1,
       minHeight: 52,
       maxHeight: 140,
-      fontFamily: t.fonts.body,
+      ...t.fonts.body,
       fontSize: 16,
       color: t.colors.text,
-      backgroundColor: t.colors.cardSolid,
+      backgroundColor: t.colors.field,
       borderWidth: 1,
-      borderColor: t.colors.border,
+      borderColor: t.colors.fieldBorder,
       borderRadius: radii.lg,
       paddingHorizontal: space(4),
       paddingVertical: space(3),

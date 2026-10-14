@@ -3,7 +3,7 @@ import { Pressable } from 'react-native';
 
 import { useTheme } from '@/ui/ThemeProvider';
 
-/** Round glass button around an icon. `label` is read by screen readers. */
+/** Round button around an icon, filled or outlined per look. `label` is read by screen readers. */
 export function IconButton({ label, onPress, children, size = 44 }: { label: string; onPress?: () => void; children: ReactNode; size?: number }) {
   const t = useTheme();
   return (
@@ -19,8 +19,8 @@ export function IconButton({ label, onPress, children, size = 44 }: { label: str
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor: t.id === 'gilded' ? t.colors.accentBorder : t.colors.border,
-        backgroundColor: t.id === 'gilded' ? 'transparent' : t.colors.cardHi,
+        borderColor: t.colors.controlBorder,
+        backgroundColor: t.colors.controlBg,
         opacity: pressed ? 0.75 : 1,
       })}>
       {children}

@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import type { Theme } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
 import { Txt } from '@/ui/Txt';
-import { radii, space } from '@/ui/theme';
+import { space } from '@/ui/theme';
 
 type Props = TextInputProps & { label?: string; hint?: string };
 
@@ -14,8 +14,9 @@ export function TextField({ label, hint, style, multiline, ...rest }: Props) {
     <View style={s.wrap}>
       {label ? <Txt variant="label">{label}</Txt> : null}
       <TextInput
-        placeholderTextColor={t.colors.textFaint}
+        placeholderTextColor={t.colors.placeholder}
         selectionColor={t.colors.accent}
+        keyboardAppearance={t.scheme}
         multiline={multiline}
         {...rest}
         style={[s.input, multiline && s.multiline, style]}
@@ -29,13 +30,13 @@ const makeStyles = (t: Theme) =>
   StyleSheet.create({
     wrap: { gap: space(2) },
     input: {
-      fontFamily: t.fonts.body,
+      ...t.fonts.body,
       fontSize: 16,
       color: t.colors.text,
-      backgroundColor: t.colors.cardSolid,
+      backgroundColor: t.colors.field,
       borderWidth: 1,
-      borderColor: t.colors.border,
-      borderRadius: radii.md + 4,
+      borderColor: t.colors.fieldBorder,
+      borderRadius: t.shape.fieldRadius,
       paddingHorizontal: space(4),
       paddingVertical: space(3),
       minHeight: 52,
