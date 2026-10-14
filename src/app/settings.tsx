@@ -4,7 +4,7 @@ import { Linking, StyleSheet, Switch, View } from 'react-native';
 
 import { useTheme } from '@/ui/ThemeProvider';
 import { describeAIError, getProvider } from '@/ai/client';
-import { costUSD, DEFAULT_MODEL, MODELS } from '@/ai/models';
+import { costUSD, DEFAULT_MODEL, GEMINI_MODELS, modelInfo, MODELS } from '@/ai/models';
 import { CRISIS_RESOURCES } from '@/ai/safety';
 import { formatDate, todayLocal } from '@/lib/date';
 import { exportBackup, importBackup } from '@/store/backupActions';
@@ -31,6 +31,9 @@ const DEPTHS: { id: ChatDepth; label: string; hint: string }[] = [
 ];
 
 const mask = (k: string) => (k.length > 8 ? `${k.slice(0, 7)}…${k.slice(-4)}` : '••••');
+
+const PROVIDER_LABELS: Record<ProviderChoice, string> = { anthropic: 'Claude', gemini: 'Gemini', openai: 'OpenAI', mock: 'Offline demo' };
+const KEY_PLACEHOLDERS: Record<KeyProvider, string> = { anthropic: 'sk-ant-…', gemini: 'AIza…', openai: 'sk-…' };
 
 export default function Settings() {
   const { colors } = useTheme();
@@ -85,7 +88,7 @@ export default function Settings() {
 
   const usageRows = Object.entries(settings.usage.byModel);
   const totalCost = usageRows.reduce((sum, [model, u]) => sum + (costUSD(model, u) ?? 0), 0);
-  const providers: ProviderChoice[] = __DEV__ ? ['anthropic', 'openai', 'mock'] : ['anthropic', 'openai'];
+  const providers: ProviderChoice[] = __DEV__ ? ['anthropic', 'gemini', 'openai', 'mock'] : ['anthropic', 'gemini', 'openai'];
 
   return (
     <Screen header={<ScreenHeader title="Settings" />}>
@@ -121,7 +124,7 @@ export default function Settings() {
           {providers.map((p) => (
             <Chip
               key={p}
-              label={p === 'anthropic' ? 'Claude' : p === 'openai' ? 'OpenAI' : 'Offline demo'}
+              label={PROVIDER_LABELS[p]}
               selected={settings.provider === p}
               onPress={() => {
                 settings.update({ provider: p });
@@ -134,7 +137,7 @@ export default function Settings() {
 
         {keyProvider ? (
           <>
-            <Txt variant="label">{keyProvider === 'anthropic' ? 'Claude API key' : 'OpenAI API key'}</Txt>
+            <Txt variant="label">{`${PROVIDER_LABELS[keyProvider]} API key`}</Txt>
             {storedKey ? (
               <View style={styles.keyRow}>
                 <Txt variant="body" style={styles.flex}>
@@ -155,11 +158,11 @@ export default function Settings() {
                 <TextField
                   value={draftKey}
                   onChangeText={setDraftKey}
-                  placeholder={keyProvider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
+                  placeholder={KEY_PLACEHOLDERS[keyProvider]}
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
-                  hint="Stored only on this device. It is never included in backups."
+                  hint={`${keyProvider === 'gemini' ? 'Create one at aistudio.google.com under Get API key. ' : ''}Stored only on this device. It is never included in backups.`}
                 />
                 <Button label="Save key" small disabled={!draftKey.trim()} onPress={saveKey} />
               </>
@@ -176,6 +179,17 @@ export default function Settings() {
               <Card key={id} tone={settings.anthropicModel === id ? 'ember' : 'default'} onPress={() => settings.update({ anthropicModel: id })}>
                 <Txt variant="body">{m.label}</Txt>
                 <Txt variant="small">{`$${m.inPerM} in · $${m.outPerM} out per million tokens`}</Txt>
+              </Card>
+            ))}
+          </>
+        ) : null}
+        {settings.provider === 'gemini' ? (
+          <>
+            <Txt variant="label">Model</Txt>
+            {Object.entries(GEMINI_MODELS).map(([id, m]) => (
+              <Card key={id} tone={settings.geminiModel === id ? 'ember' : 'default'} onPress={() => settings.update({ geminiModel: id })}>
+                <Txt variant="body">{m.label}</Txt>
+                <Txt variant="small">{`$${m.inPerM} in · $${m.outPerM} out per million tokens (free tier available)`}</Txt>
               </Card>
             ))}
           </>
@@ -231,7 +245,7 @@ export default function Settings() {
           return (
             <View key={model} style={styles.usageRow}>
               <Txt variant="small" color={colors.text} style={styles.flex}>
-                {MODELS[model]?.label.replace(/ \(.*\)$/, '') ?? model}
+                {modelInfo(model)?.label.replace(/ \(.*\)$/, '') ?? model}
               </Txt>
               <Txt variant="small">{`${(u.inputTokens + u.cacheReadTokens + u.cacheWriteTokens).toLocaleString()} in · ${u.outputTokens.toLocaleString()} out${cost !== null ? ` · ~$${cost.toFixed(2)}` : ''}`}</Txt>
             </View>

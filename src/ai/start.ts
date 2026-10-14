@@ -1,5 +1,5 @@
 import { describeUser, type UserSnapshot } from '@/ai/context';
-import { DEFAULT_MODEL } from '@/ai/models';
+import { DEFAULT_GEMINI_MODEL, DEFAULT_MODEL } from '@/ai/models';
 import { guideOfMode, type AnyModeId } from '@/ai/modes';
 import { buildSystemPrompt } from '@/ai/persona';
 import type { StoredMessage } from '@/ai/types';
@@ -62,7 +62,14 @@ export function systemPromptFor(mode: AnyModeId, customFocus?: string): string {
 export function startConversation(opts: { mode: AnyModeId; customFocus?: string; seed?: StoredMessage[]; title?: string; system?: string }): string {
   const settings = useSettingsStore.getState();
   const system = opts.system ?? systemPromptFor(opts.mode, opts.customFocus);
-  const model = settings.provider === 'openai' ? settings.openaiModel : settings.provider === 'mock' ? 'mock-jung' : settings.anthropicModel || DEFAULT_MODEL;
+  const model =
+    settings.provider === 'openai'
+      ? settings.openaiModel
+      : settings.provider === 'gemini'
+        ? settings.geminiModel || DEFAULT_GEMINI_MODEL
+        : settings.provider === 'mock'
+          ? 'mock-jung'
+          : settings.anthropicModel || DEFAULT_MODEL;
   return useChatStore.getState().newConversation({
     mode: opts.mode,
     customFocus: opts.customFocus,

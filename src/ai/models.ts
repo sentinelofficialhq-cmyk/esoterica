@@ -21,8 +21,24 @@ export const MODELS: Record<string, ModelInfo> = {
   'claude-fable-5-1': { label: 'Claude Fable 5.1 (most capable, priciest)', inPerM: 10, outPerM: 50, cacheReadPerM: 0.25, cacheWritePerM: 12.5, serverFallback: true },
 };
 
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
+
+/**
+ * Gemini models offered in Settings (Standard paid tier). Google lists the 3.8 and 3.6 Flash rates as valid
+ * through 31 Dec 2026, doubling on 1 Jan 2027; update these then. Gemini has a free tier, where cost is $0.
+ */
+export const GEMINI_MODELS: Record<string, ModelInfo> = {
+  'gemini-3.8-flash': { label: 'Gemini 3.8 Flash (default)', inPerM: 0.75, outPerM: 3.75, cacheReadPerM: 0.075, cacheWritePerM: 0, serverFallback: false },
+  'gemini-3.6-flash': { label: 'Gemini 3.6 Flash', inPerM: 0.75, outPerM: 3.75, cacheReadPerM: 0.075, cacheWritePerM: 0, serverFallback: false },
+  'gemini-3.5-flash-lite': { label: 'Gemini 3.5 Flash-Lite (cheaper)', inPerM: 0.3, outPerM: 2.5, cacheReadPerM: 0.03, cacheWritePerM: 0, serverFallback: false },
+  'gemini-3.1-flash-lite': { label: 'Gemini 3.1 Flash-Lite (cheapest)', inPerM: 0.25, outPerM: 1.5, cacheReadPerM: 0.025, cacheWritePerM: 0, serverFallback: false },
+};
+
+/** Price and label for any known Claude or Gemini model. */
+export const modelInfo = (model: string): ModelInfo | undefined => MODELS[model] ?? GEMINI_MODELS[model];
+
 export function costUSD(model: string, u: Usage): number | null {
-  const m = MODELS[model];
+  const m = modelInfo(model);
   if (!m) return null;
   return (u.inputTokens * m.inPerM + u.outputTokens * m.outPerM + u.cacheReadTokens * m.cacheReadPerM + u.cacheWriteTokens * m.cacheWritePerM) / 1e6;
 }

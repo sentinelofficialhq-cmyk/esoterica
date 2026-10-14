@@ -1,19 +1,22 @@
 import { createAnthropicProvider } from '@/ai/anthropic';
 import { createMockProvider } from '@/ai/mock';
-import { DEFAULT_MODEL } from '@/ai/models';
+import { createGeminiProvider } from '@/ai/gemini';
+import { DEFAULT_GEMINI_MODEL, DEFAULT_MODEL } from '@/ai/models';
 import { createOpenAIProvider } from '@/ai/openai';
 import type { AIProvider } from '@/ai/types';
 import { getKey } from '@/store/secrets';
 import type { ProviderChoice } from '@/store/settingsStore';
 
+const PROVIDER_NAMES: Record<string, string> = { anthropic: 'Claude', openai: 'OpenAI', gemini: 'Gemini' };
+
 export class NoKeyError extends Error {
   constructor(provider: string) {
-    super(`Add your ${provider === 'openai' ? 'OpenAI' : 'Claude'} API key in Settings to talk with Jung.`);
+    super(`Add your ${PROVIDER_NAMES[provider] ?? 'Claude'} API key in Settings to talk with Jung.`);
     this.name = 'NoKeyError';
   }
 }
 
-type ProviderSettings = { provider: ProviderChoice; anthropicModel: string; openaiModel: string };
+type ProviderSettings = { provider: ProviderChoice; anthropicModel: string; openaiModel: string; geminiModel: string };
 
 /** The provider the user picked in Settings, with their key. Throws NoKeyError when no key is stored. */
 export async function getProvider(s: ProviderSettings): Promise<AIProvider> {
@@ -24,6 +27,7 @@ export async function getProvider(s: ProviderSettings): Promise<AIProvider> {
     if (!s.openaiModel.trim()) throw new Error('Choose an OpenAI model name in Settings.');
     return createOpenAIProvider(key, s.openaiModel.trim());
   }
+  if (s.provider === 'gemini') return createGeminiProvider(key, s.geminiModel || DEFAULT_GEMINI_MODEL);
   return createAnthropicProvider(key, s.anthropicModel || DEFAULT_MODEL);
 }
 

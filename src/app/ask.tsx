@@ -111,7 +111,7 @@ export default function AskScreen() {
         <Card tone="gold" onPress={() => router.push('/settings')}>
           <Txt variant="heading">{`Connect ${name}`}</Txt>
           <Txt variant="small" color={colors.text}>
-            Add your Claude API key in Settings. It stays on this device, and your guides use it to answer you directly.
+            Add a Claude, Gemini or OpenAI API key in Settings. It stays on this device, and your guides use it to answer you directly.
           </Txt>
         </Card>
       ) : null}

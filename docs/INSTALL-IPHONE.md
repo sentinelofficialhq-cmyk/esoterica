@@ -12,8 +12,8 @@ Esoterica runs as a web app that you add to your Home Screen. It opens full scre
 
 1. Open Esoterica from the icon and enter your name and birthday.
 2. Go to **Settings** (the gear at the top of the Me or Ask tab).
-3. Under **Jung AI**, paste your Claude API key, tap **Save key**, then **Test connection**. You create the key at console.anthropic.com under API keys. It is stored only on your phone and is never put in backups.
-4. Optional: pick a cheaper model. Claude Opus 5.5 is the default and costs roughly 2–4¢ per chat message (about $5–20 a month with regular use). Claude Sonnet 5.5 costs about half that. Settings shows a running estimate.
+3. Under **Jung AI**, pick a provider, paste its API key, tap **Save key**, then **Test connection**. Claude keys come from console.anthropic.com under API keys; Gemini keys come from aistudio.google.com under Get API key (Gemini has a free tier). The key is stored only on your phone and is never put in backups.
+4. Optional: pick a cheaper model. Claude Opus 5.5 is the default and costs roughly 2–4¢ per chat message (about $5–20 a month with regular use). Claude Sonnet 5.5 costs about half that. With Gemini, 3.8 Flash is the default and costs a fraction of a cent per message on the paid tier. Settings shows a running estimate.
 
 ## Back up every week
 
@@ -30,11 +30,11 @@ When a new version is deployed, close Esoterica fully and reopen it to load the 
 ## Privacy
 
 - Your profile, journal, dreams, readings and chats are stored on your phone only.
-- Chat messages go straight from your phone to Anthropic using your key. The site that serves Esoterica holds only the app's code: no data and no keys.
+- Chat messages go straight from your phone to the AI provider you picked (Anthropic, Google or OpenAI) using your key. The site that serves Esoterica holds only the app's code: no data and no keys.
 
 ## Troubleshooting
 
-- **"Your key was rejected"**: paste the key again and check that your Anthropic account has credit.
+- **"Your key was rejected"**: paste the key again and check that your provider account (Anthropic, Google AI Studio or OpenAI) is active and, for paid use, has credit or billing set up.
 - **A message failed**: check your connection, then tap **Retry** under it.
 - **You see the welcome screen again**: you probably opened Esoterica in Safari instead of from the icon, or the app's data was cleared. Use the icon, or restore from your backup.
 

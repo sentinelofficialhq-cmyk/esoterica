@@ -1,18 +1,20 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { DEFAULT_GEMINI_MODEL } from '@/ai/models';
 import type { Usage } from '@/ai/types';
 import { persistStorage } from '@/store/storage';
 import type { ThemeId } from '@/ui/themes';
 
 export type ChatDepth = 'quick' | 'balanced' | 'deep';
 /** 'mock' is an offline stand-in offered only in development builds. */
-export type ProviderChoice = 'anthropic' | 'openai' | 'mock';
+export type ProviderChoice = 'anthropic' | 'openai' | 'gemini' | 'mock';
 
 type SettingsFields = {
   provider: ProviderChoice;
   anthropicModel: string;
   openaiModel: string;
+  geminiModel: string;
   chatDepth: ChatDepth;
   memoryEnabled: boolean;
   lastBackupAt: string | null;
@@ -33,6 +35,7 @@ export const useSettingsStore = create<SettingsState>()(
       provider: 'anthropic',
       anthropicModel: 'claude-opus-5-5',
       openaiModel: '',
+      geminiModel: DEFAULT_GEMINI_MODEL,
       chatDepth: 'quick',
       memoryEnabled: true,
       lastBackupAt: null,

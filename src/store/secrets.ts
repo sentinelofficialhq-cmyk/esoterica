@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-export type KeyProvider = 'anthropic' | 'openai';
+export type KeyProvider = 'anthropic' | 'openai' | 'gemini';
 
 const keyName = (p: KeyProvider) => `rocket-key-${p}`;
 

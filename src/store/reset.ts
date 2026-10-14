@@ -22,4 +22,5 @@ export async function resetAllData(): Promise<void> {
   useImaginationStore.setState(useImaginationStore.getInitialState(), true);
   await setKey('anthropic', null);
   await setKey('openai', null);
+  await setKey('gemini', null);
 }
