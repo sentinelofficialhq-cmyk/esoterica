@@ -15,6 +15,7 @@ import { energyEvents, energyFor, forecast, RELATION_LABEL } from '@/engines/tim
 import { signDistance, type WesternSign } from '@/engines/western';
 import type { AlignmentResult, ArchetypeResult, TypesResult } from '@/jung/types';
 import { addDays, formatDate, monthName, parseYMD, weekday } from '@/lib/date';
+import { withMind } from '@/readings/mind';
 import type { ReadingDoc, ReadingSection } from '@/readings/types';
 
 // ── shared phrasing ─────────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ export function dateReading(date: string, label?: string): ReadingDoc {
   const sign = SIGN_MEANINGS[p.western.sign];
   const animal = ANIMAL_MEANINGS[p.chinese.animal];
   const friends = allies(p.chinese.animal);
-  return {
+  return withMind({
     type: 'date',
     title: label || formatDate(date),
     subtitle: label ? formatDate(date) : 'Date calculator',
@@ -88,7 +89,7 @@ export function dateReading(date: string, label?: string): ReadingDoc {
       allies: friends,
       clash: enemy(p.chinese.animal),
     },
-  };
+  }, p.lifePath.value);
 }
 
 export function nameReading(names: string[], system: LetterSystem = 'pythagorean', lifePathRoot?: number): ReadingDoc {
@@ -202,7 +203,7 @@ export function fullReading(p: Profile, quizzes: Quizzes, today: string): Readin
     heading: 'Your shadow side',
     body: `Number: ${lp.shadow} Sign: ${sign.shadow} Animal: ${animal.shadow}${quizzes.types ? ` Inferior function: ${FUNCTION_MEANINGS[quizzes.types.inferior].whenInferior}` : ''}`,
   });
-  return {
+  return withMind({
     type: 'full',
     title: p.name ? `${p.name}’s full reading` : 'Your full reading',
     subtitle: 'Numbers, signs and psyche, read together',
@@ -230,7 +231,7 @@ export function fullReading(p: Profile, quizzes: Quizzes, today: string): Readin
       ...(quizzes.archetypes ? { archetypes: quizzes.archetypes.top } : {}),
       ...(quizzes.alignment ? { alignment: `${quizzes.alignment.percent}%` } : {}),
     },
-  };
+  }, p.lifePath.value);
 }
 
 // ── timing ──────────────────────────────────────────────────────────────────
@@ -238,7 +239,7 @@ export function dailyReading(p: Profile, date: string): ReadingDoc {
   const e = energyFor(p, date);
   const g = DAY_GUIDANCE[e.personalDay];
   const rel = relation(e.userAnimal, e.dayAnimal);
-  return {
+  return withMind({
     type: 'daily',
     title: dayLabel(date),
     subtitle: 'Daily reading',
@@ -265,7 +266,7 @@ export function dailyReading(p: Profile, date: string): ReadingDoc {
       dayAnimal: `${e.dayAnimal} (${RELATION_LABEL[rel]} for a ${e.userAnimal})`,
       factors: e.factors.map((f) => `${f.delta > 0 ? '+' : ''}${f.delta} ${f.label}`),
     },
-  };
+  }, e.personalDay);
 }
 
 export function weekReading(p: Profile, start: string): ReadingDoc {
@@ -274,7 +275,7 @@ export function weekReading(p: Profile, start: string): ReadingDoc {
   const hardest = days.reduce((a, b) => (b.score < a.score ? b : a));
   const events = energyEvents(p, start, 7);
   const lines = days.map((d) => `${dayLabel(d.date)} · ${d.score} ${d.label} · personal day ${d.personalDayDisplay}`);
-  return {
+  return withMind({
     type: 'week',
     title: `Week of ${formatDate(start)}`,
     subtitle: '7-day forecast',
@@ -290,7 +291,7 @@ export function weekReading(p: Profile, start: string): ReadingDoc {
       hardest: `${hardest.date} (${hardest.score})`,
       events: events.map((ev) => `${ev.date}: ${ev.title}`),
     },
-  };
+  }, personalDay(p.birthDate, start).value);
 }
 
 export function yearReading(p: Profile, year: number): ReadingDoc {
@@ -301,7 +302,7 @@ export function yearReading(p: Profile, year: number): ReadingDoc {
     const pm = personalMonth(p.birthDate, year, i + 1);
     return `${monthName(i + 1)}: ${pm.display} · ${meaningFor(pm.value).title}`;
   });
-  return {
+  return withMind({
     type: 'year',
     title: `${year} for ${p.name || 'you'}`,
     subtitle: 'Year ahead',
@@ -314,13 +315,13 @@ export function yearReading(p: Profile, year: number): ReadingDoc {
       },
     ],
     facts: { year, personalYear: py.display, theme: PERSONAL_YEAR_THEMES[py.root], months, yearAnimal: lunar.animal, yearElement: lunar.element, forYou: RELATION_LABEL[rel] },
-  };
+  }, py.value);
 }
 
 export function bestDateReading(p: Profile, intent: Intent, start: string, days: number): ReadingDoc {
   const ranked = bestDates(p, intent, start, days);
   const lines = ranked.map((d) => `${dayLabel(d.date)} · ${d.total}${d.reasons.length ? ` · ${d.reasons.join('; ')}` : ''}`);
-  return {
+  return withMind({
     type: 'bestDate',
     title: `Best days to ${INTENTS[intent].toLowerCase()}`,
     subtitle: `${formatDate(start)} to ${formatDate(addDays(start, days - 1))}`,
@@ -329,15 +330,16 @@ export function bestDateReading(p: Profile, intent: Intent, start: string, days:
       { heading: 'How these were chosen', body: 'Each day starts from your Energy score, then gains or loses points for what this intention needs: the right personal day, the moon phase, and whether the day’s animal is an ally or your clash.' },
     ],
     facts: { intent: INTENTS[intent], from: start, days, top: lines },
-  };
+  }, p.lifePath.value);
 }
 
 // ── relationships ───────────────────────────────────────────────────────────
+// Compatibility always reads key 2 (partnership → Matthew 18:19), whatever the two Life Paths are.
 export function compatibilityReading(a: Profile, b: Profile, labels: { a: string; b: string }): ReadingDoc {
   const c = compatibility(a, b);
   const d = signDistance(a.western.sign, b.western.sign);
   const h = numberHarmony(a.lifePath.root, b.lifePath.root);
-  return {
+  return withMind({
     type: 'compatibility',
     title: `${labels.a} & ${labels.b}`,
     subtitle: 'Compatibility',
@@ -363,7 +365,7 @@ export function compatibilityReading(a: Profile, b: Profile, labels: { a: string
       aPattern: `${a.lifePath.display}, ${westernLine(a.western)}, ${chineseLine(a.chinese)}`,
       bPattern: `${b.lifePath.display}, ${westernLine(b.western)}, ${chineseLine(b.chinese)}`,
     },
-  };
+  }, 2);
 }
 
 export function familyReading(members: { name: string; relation: string; profile: Profile }[]): ReadingDoc {
