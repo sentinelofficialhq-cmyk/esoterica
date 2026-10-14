@@ -57,7 +57,7 @@ function Bubble({ m, guide, onRetry }: { m: StoredMessage; guide: GuideId; onRet
 
 export default function ChatScreen() {
   const styles = useStyles(makeStyles);
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { id, q } = useLocalSearchParams<{ id: string; q?: string }>();
   const conv = useChatStore((s) => s.conversations.find((c) => c.id === id));
   const guide: GuideId = conv ? guideOfMode(conv.mode) : 'jung';
@@ -157,8 +157,9 @@ export default function ChatScreen() {
               value={draft}
               onChangeText={setDraft}
               placeholder={`Write to ${GUIDE_SHORT[guide]}…`}
-              placeholderTextColor={colors.textFaint}
+              placeholderTextColor={colors.placeholder}
               selectionColor={colors.accent}
+              keyboardAppearance={scheme}
               multiline
               style={styles.input}
             />
@@ -235,13 +236,13 @@ const makeStyles = (t: Theme) =>
       flex: 1,
       minHeight: 48,
       maxHeight: 140,
-      fontFamily: t.fonts.body,
+      ...t.fonts.body,
       fontSize: 16,
       color: t.colors.text,
       backgroundColor: t.colors.bgElev,
       borderWidth: 1,
-      borderColor: t.colors.border,
-      borderRadius: radii.lg,
+      borderColor: t.colors.fieldBorder,
+      borderRadius: t.shape.inputRadius,
       paddingHorizontal: space(4),
       paddingVertical: space(3),
     },

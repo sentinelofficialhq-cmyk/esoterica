@@ -46,7 +46,7 @@ export function Timer({ minutes }: { minutes: number }) {
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     wrap: { alignItems: 'center', gap: space(3) },
-    time: { fontFamily: t.fonts.displayBold, fontSize: 48, color: t.colors.text, fontVariant: ['tabular-nums', 'lining-nums'] },
+    time: { ...t.fonts.numeral, fontSize: 48, color: t.colors.text, fontVariant: ['tabular-nums', 'lining-nums'] },
     row: { flexDirection: 'row', gap: space(2), alignSelf: 'stretch' },
     flex: { flex: 1 },
   });

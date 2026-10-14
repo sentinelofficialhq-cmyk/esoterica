@@ -71,7 +71,7 @@ export default function PracticeScreen() {
       <Card>
         {practice.steps.map((step, i) => (
           <View key={step} style={styles.step}>
-            <Text style={[styles.stepNum, { color: t.colors.onAccent, backgroundColor: t.colors.accent, fontFamily: t.fonts.bodyBold }]}>{i + 1}</Text>
+            <Text style={[styles.stepNum, { ...t.fonts.bodyBold, color: t.colors.onAccent, backgroundColor: t.colors.accent }]}>{i + 1}</Text>
             <Txt variant="body" style={styles.flex}>
               {step}
             </Txt>

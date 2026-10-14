@@ -27,9 +27,9 @@ import {
   YinYangIcon,
 } from '@/ui/icons';
 import { Numeral } from '@/ui/Numeral';
-import { Screen, TAB_BAR_SPACE } from '@/ui/Screen';
+import { Screen, useTabBarSpace } from '@/ui/Screen';
 import { TextField } from '@/ui/TextField';
-import type { Theme } from '@/ui/themes';
+import type { Theme, ThemeShape } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
 import { Txt } from '@/ui/Txt';
 import { space } from '@/ui/theme';
@@ -48,6 +48,20 @@ const LENSES: { id: LensId; label: string; icon: IconCmp }[] = [
 ];
 
 type LensText = { title: string; subtitle: string; body: string };
+
+/** A date in the look's style: 09 / 14 / 1985, 14 September 1985, or 14 · 09 · 1985. */
+function lookDate(style: ThemeShape['dateStyle'], y: number, m: number, d: number): string {
+  const mm = String(m).padStart(2, '0');
+  const dd = String(d).padStart(2, '0');
+  switch (style) {
+    case 'long':
+      return `${d} ${monthLong(m)} ${y}`;
+    case 'dots':
+      return `${dd} · ${mm} · ${y}`;
+    case 'slashes':
+      return `${mm} / ${dd} / ${y}`;
+  }
+}
 
 function lensText(lens: LensId, p: Profile, today: string): LensText {
   const lp = meaningFor(p.lifePath.value);
@@ -102,6 +116,7 @@ export default function CalculatorTab() {
   const [editing, setEditing] = useState(params.pick === '1');
   const [lens, setLens] = useState<LensId>('overview');
   const [open, setOpen] = useState<string | null>(null);
+  const tabSpace = useTabBarSpace();
   if (!me) return <Redirect href="/onboarding" />;
 
   const shown = date ?? me.birthDate;
@@ -116,8 +131,7 @@ export default function CalculatorTab() {
   const lpm = meaningFor(p.lifePath.value);
   const sign = SIGN_MEANINGS[p.western.sign];
   const animal = ANIMAL_MEANINGS[p.chinese.animal];
-  const dateText =
-    t.id === 'gilded' ? `${d} ${monthLong(m)} ${y}` : t.id === 'nebula' ? `${String(d).padStart(2, '0')} · ${String(m).padStart(2, '0')} · ${y}` : `${String(m).padStart(2, '0')} / ${String(d).padStart(2, '0')} / ${y}`;
+  const dateText = lookDate(t.shape.dateStyle, y, m, d);
 
   const glyphStyle = [s.bigGlyph, t.shadows.numeral ? { textShadowColor: t.shadows.numeral, textShadowRadius: 16 } : null];
   const sections = [
@@ -128,8 +142,9 @@ export default function CalculatorTab() {
   ];
 
   return (
-    <Screen bottomInset={TAB_BAR_SPACE}>
-      {t.shape.layout === 'wide' ? (
+    <Screen bottomInset={tabSpace}>
+      {/* The split layout gets three small cards over a date bar; every other layout shares the wide top. */}
+      {t.shape.layout !== 'split' ? (
         <>
           <View style={s.dateHeader}>
             <View style={s.flex}>
@@ -268,7 +283,7 @@ export default function CalculatorTab() {
         ? sections.map((sec) => (
             <Card key={sec.id} onPress={() => setOpen(open === sec.id ? null : sec.id)} accessibilityLabel={sec.title}>
               <View style={s.accordionHead}>
-                <Text style={[s.accordionTitle, { color: sec.tint }]}>{t.id === 'gilded' ? sec.title : sec.title.toUpperCase()}</Text>
+                <Text style={[s.accordionTitle, { color: sec.tint }]}>{sec.title}</Text>
                 <View style={{ transform: [{ rotate: open === sec.id ? '-90deg' : '90deg' }] }}>
                   <ChevronRightIcon size={18} color={t.colors.textDim} />
                 </View>
@@ -315,7 +330,7 @@ function LensTabs({ lens, onChange }: { lens: LensId; onChange: (l: LensId) => v
         const on = l.id === lens;
         return t.shape.lensTabs === 'text' ? (
           <Pressable key={l.id} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => onChange(l.id)} style={[s.textTab, on && { borderBottomColor: t.colors.accent }]}>
-            <Text style={[s.textTabLabel, { color: on ? t.colors.accentBright : t.colors.textDim }]}>{l.label.toUpperCase()}</Text>
+            <Text style={[s.textTabLabel, { color: on ? t.colors.accentBright : t.colors.textDim }]}>{l.label}</Text>
           </Pressable>
         ) : (
           <Pressable
@@ -323,8 +338,8 @@ function LensTabs({ lens, onChange }: { lens: LensId; onChange: (l: LensId) => v
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             onPress={() => onChange(l.id)}
-            style={[s.pillTab, on ? { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' } : { backgroundColor: t.colors.cardHi, borderColor: t.colors.border }]}>
-            <Text style={[s.pillTabLabel, { color: on ? t.colors.onAccent : t.colors.text }]}>{l.label}</Text>
+            style={[s.pillTab, on ? { backgroundColor: t.colors.pillActive, borderColor: t.colors.pillActive } : { backgroundColor: t.colors.cardHi, borderColor: t.colors.border }]}>
+            <Text style={[s.pillTabLabel, { color: on ? t.colors.onPillActive : t.colors.text }]}>{l.label}</Text>
           </Pressable>
         );
       })}
@@ -335,11 +350,11 @@ function LensTabs({ lens, onChange }: { lens: LensId; onChange: (l: LensId) => v
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
     flex: { flex: 1 },
-    bold: { fontFamily: t.fonts.bodyBold },
+    bold: { ...t.fonts.bodyBold },
     cards: { flexDirection: 'row', gap: space(2.5) },
     patternCard: { flex: 1, height: 168, alignItems: 'center', paddingHorizontal: space(1.5), paddingVertical: space(3), gap: 0 },
     chips: { flexDirection: 'row', gap: 4, marginTop: space(1) },
-    miniChip: { fontFamily: t.fonts.bodyBold, fontSize: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3, overflow: 'hidden' },
+    miniChip: { ...t.fonts.bodyBold, fontSize: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3, overflow: 'hidden' },
     bigGlyph: { flex: 1, textAlignVertical: 'center', fontSize: 48, lineHeight: 74, textAlign: 'center' },
     midGlyph: { fontSize: 34 },
     dateRow: { flexDirection: 'row', gap: space(2.5) },
@@ -353,7 +368,7 @@ const makeStyles = (t: Theme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    dateText: { fontFamily: t.fonts.displaySemi, fontSize: 20, letterSpacing: 1, color: t.colors.text },
+    dateText: { ...t.fonts.displaySemi, fontSize: 20, letterSpacing: 1, color: t.colors.text },
     datePencil: { position: 'absolute', right: 14 },
     dateHeader: { flexDirection: 'row', alignItems: 'center', gap: space(2.5) },
     heroCard: { alignItems: 'center', gap: space(1), paddingVertical: space(4) },
@@ -365,19 +380,14 @@ const makeStyles = (t: Theme) =>
     iconTab: { width: 42, height: 42, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     textTabs: { gap: space(5), borderBottomWidth: 1, borderBottomColor: t.colors.border, flexGrow: 1 },
     textTab: { height: 40, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    textTabLabel: { fontFamily: t.fonts.bodyBold, fontSize: 11.5, letterSpacing: 1.6 },
+    textTabLabel: t.ui.lensTab,
     pillTabs: { gap: space(2) },
     pillTab: { height: 38, paddingHorizontal: space(4), borderRadius: 19, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    pillTabLabel: { fontFamily: t.fonts.bodyBold, fontSize: 13 },
+    pillTabLabel: t.ui.lensPill,
     content: { alignItems: 'center', gap: space(3), paddingVertical: space(5), paddingHorizontal: space(5) },
-    contentSubtitle: { fontFamily: t.fonts.displaySemi, fontSize: t.id === 'gilded' ? 22 : 17, lineHeight: t.id === 'gilded' ? 26 : 23, color: t.colors.accentBright, textAlign: 'center' },
+    contentSubtitle: { ...t.ui.subtitle, color: t.colors.accentBright, textAlign: 'center' },
     contentRule: { width: '80%', height: 1 },
     contentBody: { lineHeight: 25 },
     accordionHead: { flexDirection: 'row', alignItems: 'center', minHeight: 30 },
-    accordionTitle: {
-      flex: 1,
-      fontFamily: t.id === 'gilded' ? t.fonts.displaySemi : t.fonts.displayBold,
-      fontSize: t.id === 'gilded' ? 20 : 14,
-      letterSpacing: t.id === 'gilded' ? 0 : 2,
-    },
+    accordionTitle: { flex: 1, ...t.ui.sectionTitle },
   });

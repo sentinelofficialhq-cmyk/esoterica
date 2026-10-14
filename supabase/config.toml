@@ -1,0 +1,9 @@
+# Settings for the Supabase CLI. Run `npx supabase link --project-ref <ref>` once; see docs/BACKEND-SETUP.md.
+project_id = "esoterica"
+
+[functions.claude]
+verify_jwt = true
+
+# RevenueCat can't send a Supabase session; the function checks its shared secret instead.
+[functions.revenuecat-webhook]
+verify_jwt = false

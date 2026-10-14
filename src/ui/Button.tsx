@@ -4,12 +4,12 @@ import { ActivityIndicator, Pressable, type StyleProp, StyleSheet, Text, View, t
 
 import type { Theme } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
-import { radii, space } from '@/ui/theme';
+import { solidFill, space } from '@/ui/theme';
 
 type Props = {
   label: string;
   onPress?: () => void;
-  /** primary: the look's call-to-action gradient. subtle: glass. ghost: outlined. */
+  /** primary: the look's call-to-action fill. subtle: glass. ghost: outlined (or plain text where the border is clear). */
   variant?: 'primary' | 'ghost' | 'subtle';
   disabled?: boolean;
   loading?: boolean;
@@ -21,15 +21,18 @@ type Props = {
 export function Button({ label, onPress, variant = 'primary', disabled, loading, icon, style, small }: Props) {
   const t = useTheme();
   const s = useStyles(makeStyles);
-  const textColor = variant === 'primary' ? t.colors.onAccent : variant === 'ghost' ? t.colors.accentBright : t.colors.text;
+  const primary = variant === 'primary';
+  const textColor = primary ? t.colors.onAccent : variant === 'ghost' ? t.colors.ghostInk : t.colors.text;
+  const solid = solidFill(t.gradients.cta);
   const content = loading ? (
     <ActivityIndicator color={textColor} />
   ) : (
     <View style={s.row}>
       {icon}
-      <Text style={[s.label, small && s.smallLabel, { color: textColor }]}>{t.id === 'gilded' && variant === 'primary' ? label.toUpperCase() : label}</Text>
+      <Text style={[s.label, small && s.smallLabel, primary && t.shape.ctaUppercase && s.upper, { color: textColor }]}>{label}</Text>
     </View>
   );
+  const fillStyle = [s.fill, small && s.smallFill];
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,19 +42,21 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
       style={({ pressed }) => [
         s.base,
         small && s.small,
-        variant === 'primary' && s.primary,
+        primary && s.primary,
         variant === 'ghost' && s.ghost,
         variant === 'subtle' && s.subtle,
         (disabled || loading) && s.disabled,
         pressed && s.pressed,
         style,
       ]}>
-      {variant === 'primary' ? (
-        <LinearGradient colors={t.gradients.cta} style={[s.fill, small && s.smallFill]}>
+      {!primary ? (
+        content
+      ) : solid ? (
+        <View style={[fillStyle, { backgroundColor: solid }]}>{content}</View>
+      ) : (
+        <LinearGradient colors={t.gradients.cta} style={fillStyle}>
           {content}
         </LinearGradient>
-      ) : (
-        content
       )}
     </Pressable>
   );
@@ -59,27 +64,28 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
 
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
-    base: { minHeight: 54, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(6) },
+    base: { minHeight: t.shape.buttonHeight, borderRadius: t.shape.buttonRadius, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(6) },
     small: { minHeight: 40, paddingHorizontal: space(4) },
     primary: {
       paddingHorizontal: 0,
       overflow: 'hidden',
-      shadowColor: t.shadows.cta,
-      shadowOpacity: 1,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 8 },
+      ...(t.shadows.cta ? { shadowColor: t.shadows.cta, shadowOpacity: 1, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } } : null),
     },
-    fill: { alignSelf: 'stretch', minHeight: 54, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(6) },
+    fill: {
+      alignSelf: 'stretch',
+      minHeight: t.shape.buttonHeight,
+      borderRadius: t.shape.buttonRadius,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: space(6),
+    },
     smallFill: { minHeight: 40, paddingHorizontal: space(4) },
-    ghost: { borderWidth: 1, borderColor: t.colors.accentBorder, backgroundColor: 'transparent' },
+    ghost: { borderWidth: 1, borderColor: t.colors.ghostBorder, backgroundColor: 'transparent' },
     subtle: { borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.cardHi },
     row: { flexDirection: 'row', alignItems: 'center', gap: space(2) },
-    label: {
-      fontFamily: t.id === 'gilded' ? t.fonts.bodyHeavy : t.fonts.displayBold,
-      fontSize: t.id === 'gilded' ? 13 : 16,
-      letterSpacing: t.id === 'gilded' ? 2.4 : 0,
-    },
-    smallLabel: { fontSize: t.id === 'gilded' ? 11.5 : 14 },
+    label: t.ui.button,
+    smallLabel: t.ui.buttonSmall,
+    upper: { textTransform: 'uppercase' },
     disabled: { opacity: 0.45 },
     pressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
   });

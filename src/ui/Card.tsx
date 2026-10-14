@@ -4,12 +4,12 @@ import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from 'rea
 
 import type { Theme } from '@/ui/themes';
 import { useStyles, useTheme } from '@/ui/ThemeProvider';
-import { space } from '@/ui/theme';
+import { solidFill, space } from '@/ui/theme';
 
 /**
  * - default: the look's glass (or engraved) card
  * - accent: tinted with the accent ("ember" is the old name for it)
- * - featured: accent border and glow (selected or hero cards); a gradient hairline in Nebula
+ * - featured: accent border, plus the look's glow and gradient hairline where it has them (selected or hero cards)
  * - violet / gold: tinted for psyche and timing content
  */
 export type CardTone = 'default' | 'accent' | 'ember' | 'featured' | 'violet' | 'gold';
@@ -32,8 +32,12 @@ export function Card({ children, style, onPress, tone = 'default', accessibility
     ) : (
       <View style={body(false)}>{children}</View>
     );
-    return (
-      <LinearGradient colors={gradientBorder} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.gradientFrame, { borderRadius: t.shape.cardRadius + 1.5 }]}>
+    const frame = [s.gradientFrame, { borderRadius: t.shape.cardRadius + 1.5 }];
+    const solid = solidFill(gradientBorder);
+    return solid ? (
+      <View style={[frame, { backgroundColor: solid }]}>{inner}</View>
+    ) : (
+      <LinearGradient colors={gradientBorder} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={frame}>
         {inner}
       </LinearGradient>
     );
@@ -63,10 +67,9 @@ const makeStyles = (t: Theme) =>
     featured: {
       borderColor: t.colors.accentBorder,
       borderWidth: 1.5,
-      shadowColor: t.colors.accent,
-      shadowOpacity: t.id === 'gilded' ? 0.15 : 0.35,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 0 },
+      ...(t.shadows.featured
+        ? { shadowColor: t.shadows.featured.color, shadowOpacity: t.shadows.featured.opacity, shadowRadius: t.shadows.featured.radius, shadowOffset: { width: 0, height: 0 } }
+        : null),
     },
     violet: { backgroundColor: t.colors.violetSoft, borderColor: t.colors.violetSoft },
     gold: { backgroundColor: t.colors.goldSoft, borderColor: t.colors.goldSoft },

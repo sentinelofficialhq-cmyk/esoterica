@@ -24,7 +24,7 @@ import {
 import { JourneyCard } from '@/ui/JourneyCard';
 import { LinkRow } from '@/ui/LinkRow';
 import { PsycheCard } from '@/ui/PsycheCard';
-import { Screen, TAB_BAR_SPACE } from '@/ui/Screen';
+import { Screen, useTabBarSpace } from '@/ui/Screen';
 import { SectionLabel } from '@/ui/SectionLabel';
 import { useTheme } from '@/ui/ThemeProvider';
 import { Txt } from '@/ui/Txt';
@@ -33,14 +33,15 @@ import { space } from '@/ui/theme';
 export default function MoreTab() {
   const t = useTheme();
   const me = useProfile();
+  const tabSpace = useTabBarSpace();
   if (!me) return <Redirect href="/onboarding" />;
   return (
-    <Screen bottomInset={TAB_BAR_SPACE}>
+    <Screen bottomInset={tabSpace}>
       <Txt variant="title">More</Txt>
 
       <Card onPress={() => router.push('/calculator')} style={styles.profile} accessibilityLabel="Your pattern">
         <View style={[styles.avatar, { borderColor: t.colors.accentBorder, backgroundColor: t.colors.accentSoft }]}>
-          <Text style={{ fontSize: 26, color: t.colors.glyph }}>{ANIMAL_GLYPHS[me.chinese.animal]}</Text>
+          <Text style={[styles.glyph, { color: t.colors.glyph }]}>{ANIMAL_GLYPHS[me.chinese.animal]}</Text>
         </View>
         <View style={styles.flex}>
           <Txt variant="heading">{me.name || 'You'}</Txt>
@@ -92,5 +93,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   profile: { flexDirection: 'row', alignItems: 'center', gap: space(3.5) },
   avatar: { width: 56, height: 56, borderRadius: 28, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  glyph: { fontSize: 26 },
   group: { gap: space(2) },
 });

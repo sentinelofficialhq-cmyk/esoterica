@@ -230,8 +230,8 @@ export default function Settings() {
           <Switch
             value={settings.memoryEnabled}
             onValueChange={(v) => settings.update({ memoryEnabled: v })}
-            trackColor={{ true: colors.accent, false: colors.cardHi }}
-            thumbColor={colors.text}
+            trackColor={{ true: colors.accent, false: colors.switchTrack }}
+            thumbColor={colors.switchThumb}
           />
         </View>
         <Button label="What Jung remembers" variant="subtle" small onPress={() => router.push('/memory')} />

@@ -108,7 +108,7 @@ export default function Imagine() {
           {sessions.slice(0, 5).map((x) => (
             <Card key={x.id}>
               <View style={styles.row}>
-                <Txt variant="body" style={[styles.flex, { fontFamily: t.fonts.bodyBold }]}>
+                <Txt variant="body" style={[styles.flex, t.fonts.bodyBold]}>
                   {practiceById(x.kind)?.title ?? x.kind}
                 </Txt>
                 <Txt variant="small">{formatDate(x.date)}</Txt>

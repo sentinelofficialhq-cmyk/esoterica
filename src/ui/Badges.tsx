@@ -6,17 +6,18 @@ import { useTheme } from '@/ui/ThemeProvider';
 import { Txt } from '@/ui/Txt';
 import { space } from '@/ui/theme';
 
-/** Big gradient number with its compound written small: "28/1" → 1 with "28/" beside it. */
+/** Big number (gradient or solid, per look) with its compound written small: "28/1" → 1 with "28/" beside it. */
 export function NumberBadge({ reduced, label, size = 'lg' }: { reduced: Reduced; label?: string; size?: 'lg' | 'md' }) {
   const t = useTheme();
   const showCompound = reduced.compound !== reduced.value;
-  const big = size === 'lg' ? 68 : 44;
+  const big = t.shape.numeralSize[size];
+  const small = big * t.shape.compoundScale;
   return (
     <View style={styles.numberWrap}>
       {label ? <Txt variant="label">{label}</Txt> : null}
       <View style={styles.numberRow}>
         {showCompound ? (
-          <Txt variant="title" color={t.colors.textDim} style={{ fontSize: big * 0.4, lineHeight: big * 0.5, marginBottom: big * 0.16 }}>
+          <Txt color={t.colors.textDim} style={[t.ui.compound, { fontSize: small, lineHeight: small * 1.25, marginBottom: small * 0.4 }]}>
             {reduced.compound}/
           </Txt>
         ) : null}
@@ -42,7 +43,7 @@ export function SignBadge({ glyph, name, caption, label }: { glyph: string; name
   return (
     <View style={styles.signWrap}>
       {label ? <Txt variant="label">{label}</Txt> : null}
-      <Txt style={styles.glyph} color={t.colors.glyph}>
+      <Txt style={t.ui.glyph} color={t.colors.glyph}>
         {glyph}
       </Txt>
       <Txt variant="heading">{name}</Txt>
@@ -55,5 +56,4 @@ const styles = StyleSheet.create({
   numberWrap: { gap: space(1), alignItems: 'flex-start' },
   numberRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
   signWrap: { gap: space(1), alignItems: 'flex-start' },
-  glyph: { fontSize: 32, lineHeight: 38 },
 });

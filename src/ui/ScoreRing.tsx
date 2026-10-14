@@ -7,8 +7,8 @@ import { useStyles, useTheme } from '@/ui/ThemeProvider';
 type Props = { score: number; label: string; caption?: string; size?: number };
 
 /**
- * A meter for a single 0–100 score: accent fill on a lighter step of the same hue,
- * hero number in the sans face, label in text tokens (never the data color).
+ * A meter for a single 0–100 score: accent fill on the meter track,
+ * the number in the figure face, label in text tokens (never the data color).
  */
 export function ScoreRing({ score, label, caption, size = 180 }: Props) {
   const styles = useStyles(makeStyles);
@@ -24,7 +24,7 @@ export function ScoreRing({ score, label, caption, size = 180 }: Props) {
       accessibilityRole="progressbar"
       accessibilityLabel={`${caption ?? 'Score'} ${clamped} out of 100, ${label}`}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.accentSoft} strokeWidth={stroke} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.meterTrack} strokeWidth={stroke} fill="none" />
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -46,10 +46,12 @@ export function ScoreRing({ score, label, caption, size = 180 }: Props) {
   );
 }
 
-const makeStyles = (t: Theme) =>
-  StyleSheet.create({
+const makeStyles = (t: Theme) => {
+  const upper = t.shape.labelCase === 'upper';
+  return StyleSheet.create({
     center: { alignItems: 'center', justifyContent: 'center' },
-    caption: { fontFamily: t.fonts.bodyHeavy, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: t.colors.textDim },
-    value: { fontFamily: t.fonts.bodySemi, color: t.colors.text },
-    label: { fontFamily: t.fonts.bodyMedium, fontSize: 14, color: t.colors.textDim },
+    caption: { ...t.fonts.bodyHeavy, fontSize: 10, letterSpacing: upper ? 1.4 : 0, textTransform: upper ? 'uppercase' : 'none', color: t.colors.textDim },
+    value: { ...t.fonts.figure, color: t.colors.text },
+    label: { ...t.fonts.bodyMedium, fontSize: 14, color: t.colors.textDim },
   });
+};

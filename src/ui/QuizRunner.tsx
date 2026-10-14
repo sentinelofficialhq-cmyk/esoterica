@@ -10,7 +10,7 @@ import { Screen } from '@/ui/Screen';
 import { ScreenHeader } from '@/ui/ScreenHeader';
 import { SectionLabel } from '@/ui/SectionLabel';
 import { Txt } from '@/ui/Txt';
-import { radii, space } from '@/ui/theme';
+import { space } from '@/ui/theme';
 
 /** `extra` is a softer last choice such as "Neither fits me", drawn apart from the main options; its answer index is `options.length`. */
 export type QuizQuestion = { prompt: string; options: readonly string[]; extra?: string };
@@ -85,7 +85,7 @@ export function QuizRunner(props: Props) {
       </View>
       <Txt variant="label">{`${index + 1} / ${questions.length}`}</Txt>
       <Animated.View key={index} entering={FadeIn.duration(250)} style={styles.body}>
-        <Txt variant="title" style={styles.prompt}>
+        <Txt variant="question" style={styles.prompt}>
           {q.prompt}
         </Txt>
         {q.options.map((opt, i) => (
@@ -108,11 +108,14 @@ export function QuizRunner(props: Props) {
   );
 }
 
-const makeStyles = (t: Theme) =>
-  StyleSheet.create({
-    progressTrack: { height: 4, borderRadius: radii.pill, backgroundColor: t.colors.accentSoft, overflow: 'hidden' },
-    progressFill: { height: 4, borderRadius: radii.pill, backgroundColor: t.colors.accent },
+const makeStyles = (t: Theme) => {
+  // The look's meter, capped at 4px so the progress line stays fine.
+  const bar = Math.min(4, t.shape.meter.height);
+  return StyleSheet.create({
+    progressTrack: { height: bar, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.meterTrack, overflow: 'hidden' },
+    progressFill: { height: bar, borderRadius: t.shape.meter.radius, backgroundColor: t.colors.accent },
     body: { gap: space(3) },
-    prompt: { fontSize: 24, lineHeight: 30, marginBottom: space(2) },
+    prompt: { marginBottom: space(2) },
     extra: { marginTop: space(2), paddingVertical: space(3) },
   });
+};

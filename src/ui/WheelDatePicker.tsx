@@ -147,10 +147,10 @@ const makeStyles = (t: Theme) =>
       borderRadius: radii.md,
       backgroundColor: t.colors.accentSoft,
       borderWidth: 1,
-      borderColor: 'rgba(255,122,47,0.35)',
+      borderColor: t.colors.accentBorder,
     },
     item: { height: ITEM, alignItems: 'center', justifyContent: 'center' },
-    itemText: { fontFamily: t.fonts.bodyHeavy, fontSize: 16, color: t.colors.textFaint },
+    itemText: { ...t.fonts.bodyHeavy, fontSize: 16, color: t.colors.textFaint },
     itemTextActive: { color: t.colors.text, fontSize: 18 },
     typedWrap: { gap: space(3) },
   });
