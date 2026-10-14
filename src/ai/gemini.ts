@@ -14,6 +14,10 @@ type Chunk = {
   usageMetadata?: RawUsage;
 };
 
+/** Answers when the chosen model is overloaded or rate-limited: a different model, so a separate capacity pool and quota. */
+export const FALLBACK_MODEL = 'gemini-3.5-flash-lite';
+const RETRYABLE = new Set([429, 500, 503]);
+
 const THINKING: Record<Effort, string> = { low: 'LOW', medium: 'MEDIUM', high: 'HIGH' };
 const BLOCKED = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION']);
 
@@ -95,7 +99,23 @@ const jsonSchemaOf = (schema: z.ZodType<unknown>) => {
   return rest;
 };
 
+/**
+ * `model` reads as whichever model is answering: after one fallback the provider stays on FALLBACK_MODEL,
+ * so usage and "Connected to…" name the model that actually replied. Signatures from either model are
+ * accepted by the other, so a conversation can move between them.
+ */
 export function createGeminiProvider(apiKey: string, model: string): AIProvider {
+  let current = model;
+  async function call(method: string, body: unknown, signal?: AbortSignal): Promise<Response> {
+    try {
+      return await post(apiKey, `${API}/${current}:${method}`, body, signal);
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      if (current === FALLBACK_MODEL || !status || !RETRYABLE.has(status) || signal?.aborted) throw err;
+      current = FALLBACK_MODEL;
+      return post(apiKey, `${API}/${current}:${method}`, body, signal);
+    }
+  }
   const config = (system: string, effort: Effort) => ({
     systemInstruction: { parts: [{ text: system }] },
     generationConfig: { thinkingConfig: { thinkingLevel: THINKING[effort] } },
@@ -103,14 +123,11 @@ export function createGeminiProvider(apiKey: string, model: string): AIProvider 
 
   return {
     id: 'gemini',
-    model,
+    get model() {
+      return current;
+    },
     async streamReply({ system, messages, effort, signal, onText }) {
-      const res = await post(
-        apiKey,
-        `${API}/${model}:streamGenerateContent?alt=sse`,
-        { ...config(system, effort), contents: toContents(messages) },
-        signal,
-      );
+      const res = await call('streamGenerateContent?alt=sse', { ...config(system, effort), contents: toContents(messages) }, signal);
       let text = '';
       let signature: string | undefined;
       let usage: RawUsage | undefined;
@@ -132,7 +149,7 @@ export function createGeminiProvider(apiKey: string, model: string): AIProvider 
       return { assistant: { role: 'assistant', content: text, text, gemini, status: 'ok' }, usage: toUsage(usage), refused };
     },
     async extract({ system, prompt, schema, effort }) {
-      const res = await post(apiKey, `${API}/${model}:generateContent`, {
+      const res = await call('generateContent', {
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { createGeminiProvider, toContents } from '@/ai/gemini';
+import { createGeminiProvider, FALLBACK_MODEL, toContents } from '@/ai/gemini';
 
 const sse = (chunks: unknown[]) => chunks.map((c) => `data: ${JSON.stringify(c)}\r\n\r\n`).join('');
 
@@ -125,4 +125,31 @@ test('extract asks for JSON matching the schema and validates it', async () => {
   expect(body.generationConfig.responseMimeType).toBe('application/json');
   expect(body.generationConfig.responseJsonSchema).toMatchObject({ type: 'object', properties: { notes: { type: 'array' } } });
   expect(body.generationConfig.responseJsonSchema.$schema).toBeUndefined();
+});
+
+test('an overloaded model falls back to Flash-Lite once, and the provider reports the model that answered', async () => {
+  const overloaded = { ok: false, status: 503, json: async () => ({ error: { code: 503, message: 'This model is currently experiencing high demand.' } }) };
+  const responses = [overloaded, streamed(sse([{ candidates: [{ content: { parts: [{ text: 'Ready.' }] } }] }]))];
+  global.fetch = jest.fn(async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    return responses.shift();
+  }) as never;
+  const p = createGeminiProvider('k', 'gemini-3.8-flash');
+  const res = await p.streamReply({ system: 's', messages: [{ role: 'user', content: 'x', text: 'x' }], effort: 'low', onText: () => {} });
+  expect(res.assistant.text).toBe('Ready.');
+  expect(calls.map((c) => c.url.split('/').pop())).toEqual([
+    'gemini-3.8-flash:streamGenerateContent?alt=sse',
+    `${FALLBACK_MODEL}:streamGenerateContent?alt=sse`,
+  ]);
+  expect(p.model).toBe(FALLBACK_MODEL);
+});
+
+test('other errors, and errors from the fallback model itself, are not retried', async () => {
+  next = { ok: false, status: 503, json: async () => ({ error: { message: 'busy' } }) };
+  const lite = createGeminiProvider('k', FALLBACK_MODEL);
+  await expect(lite.streamReply({ system: 's', messages: [], effort: 'low', onText: () => {} })).rejects.toMatchObject({ status: 503 });
+  expect(calls).toHaveLength(1);
+  next = { ok: false, status: 403, json: async () => ({ error: { message: 'Permission denied' } }) };
+  await expect(createGeminiProvider('k', 'gemini-3.8-flash').streamReply({ system: 's', messages: [], effort: 'low', onText: () => {} })).rejects.toMatchObject({ status: 403 });
+  expect(calls).toHaveLength(2);
 });
